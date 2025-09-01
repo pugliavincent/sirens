@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pour que Yasmine puisse apprendre à différencier les bruits de sirènes</title>
+  <style>
+    :root { --primary:#0b6efb; --active:#28a745; --text:#222; --bg:#f9fafb; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, "Helvetica Neue", sans-serif;
+      text-align: center;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 24px 16px 40px;
+    }
+    h1 { 
+      font-size: 1.5rem; 
+      line-height: 1.3; 
+      margin: 0 0 24px; 
+      padding: 0 8px;
+    }
+
+    .stack { 
+      max-width: 560px; 
+      margin: 0 auto; 
+      display: grid; 
+      gap: 16px; 
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      justify-items: center;
+    }
+
+    .siren-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      min-height: 56px;
+      padding: 12px 16px;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 14px;
+      background: var(--primary);
+      color: #fff;
+      cursor: pointer;
+      transition: transform .06s ease, background .2s ease, box-shadow .2s ease;
+      box-shadow: 0 6px 16px rgba(0,0,0,.12);
+      touch-action: manipulation;
+    }
+    .siren-btn:active { transform: scale(0.98); }
+    .siren-btn.active { background: var(--active); }
+
+    .vehicle {
+      font-size: 2rem;
+      filter: drop-shadow(0 2px 2px rgba(0,0,0,.12));
+      user-select: none;
+    }
+
+    .hint {
+      font-size: .95rem;
+      color: #555;
+      margin-top: 18px;
+    }
+
+    @media (min-width: 560px) {
+      .row { grid-template-columns: 1fr 72px; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Pour que Yasmine puisse apprendre à différencier les bruits de sirènes</h1>
+
+  <div class="stack">
+    <div class="row">
+      <button id="fire-btn" class="siren-btn" aria-pressed="false" onclick="toggleSound('fire', this)">
+        <span aria-hidden="true">🔊</span> Pompier
+      </button>
+      <span class="vehicle" aria-hidden="true">🚒</span>
+    </div>
+
+    <div class="row">
+      <button id="police-btn" class="siren-btn" aria-pressed="false" onclick="toggleSound('police', this)">
+        <span aria-hidden="true">🔊</span> Police
+      </button>
+      <span class="vehicle" aria-hidden="true">🚓</span>
+    </div>
+
+    <div class="row">
+      <button id="ambulance-btn" class="siren-btn" aria-pressed="false" onclick="toggleSound('ambulance', this)">
+        <span aria-hidden="true">🔊</span> Ambulance
+      </button>
+      <span class="vehicle" aria-hidden="true">🚑</span>
+    </div>
+  </div>
+
+  <!-- Use the user's local MP3 files (place this HTML in the same folder as the MP3s) -->
+  <audio id="fire-sound" src="firetruck-w-horns-0415-70775.mp3" preload="auto"></audio>
+  <audio id="police-sound" src="police-siren-sound-effect-240674.mp3" preload="auto"></audio>
+  <audio id="ambulance-sound" src="ambulance-6399.mp3" preload="auto"></audio>
+
+  <p class="hint">Astuce: touchez à nouveau le même bouton pour arrêter le son.</p>
+
+  <script>
+    let currentPlaying = null;
+    let currentButton = null;
+
+    function stopCurrent() {
+      if (currentPlaying) {
+        currentPlaying.pause();
+        currentPlaying.currentTime = 0;
+      }
+      if (currentButton) {
+        currentButton.classList.remove("active");
+        currentButton.setAttribute("aria-pressed", "false");
+      }
+      currentPlaying = null;
+      currentButton = null;
+    }
+
+    function toggleSound(type, button) {
+      const sound = document.getElementById(type + "-sound");
+
+      // If this sound is currently playing, stop it (toggle off)
+      if (currentPlaying === sound && !sound.paused) {
+        stopCurrent();
+        return;
+      }
+
+      // Stop anything else
+      stopCurrent();
+
+      // Try to play the new sound (iOS requires this user-gesture handler)
+      const playPromise = sound.play();
+      if (playPromise && typeof playPromise.then === "function") {
+        playPromise.then(() => {
+          button.classList.add("active");
+          button.setAttribute("aria-pressed", "true");
+          currentPlaying = sound;
+          currentButton = button;
+        }).catch((err) => {
+          console.log("Playback blocked or failed:", err);
+        });
+      } else {
+        // Fallback
+        button.classList.add("active");
+        button.setAttribute("aria-pressed", "true");
+        currentPlaying = sound;
+        currentButton = button;
+      }
+
+      // Reset when the sound ends
+      sound.onended = () => {
+        stopCurrent();
+      };
+    }
+  </script>
+</body>
+</html>
